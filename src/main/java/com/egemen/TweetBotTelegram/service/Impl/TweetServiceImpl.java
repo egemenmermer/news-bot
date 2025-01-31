@@ -11,11 +11,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
 public class TweetServiceImpl implements TweetService {
 
+    @Autowired
     private GeminiService geminiService;
 
     @Autowired
@@ -25,22 +27,31 @@ public class TweetServiceImpl implements TweetService {
     private TweetsRepository tweetRepository;
 
     @Override
-    public List<Tweets> generateTweetsForUnprocessedNews() {
+    public List<Map<String, Object>> generateTweetsForUnprocessedNews() {
         List<News> unprocessedNews = newsRepository.findByProcessedFalse();
 
         List<Tweets> tweets = unprocessedNews.stream()
                 .map(news -> {
                     String summary = geminiService.summarizeNews(news.getTitle(), news.getContent());
-
                     String tweetContent = geminiService.generateTweet(summary);
 
                     news.setProcessed(true);
                     newsRepository.save(news);
 
-                    return new Tweets(news, tweetContent, TweetStatus.SCHEDULED);
+                    return new Tweets(news.getBot(), news, tweetContent, TweetStatus.SCHEDULED);
                 })
                 .collect(Collectors.toList());
 
-        return tweetRepository.saveAll(tweets);
+        List<Tweets> savedTweets = tweetRepository.saveAll(tweets);
+
+        return savedTweets.stream()
+                .map(tweet -> Map.<String, Object>of(
+                        "id", tweet.getId(),
+                        "news_id", tweet.getNews().getId(),
+                        "bot_id", tweet.getBot().getId(),
+                        "content", tweet.getContent(),
+                        "status", tweet.getStatus().toString()
+                ))
+                .collect(Collectors.toList());
     }
 }

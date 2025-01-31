@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/tweets")
@@ -20,8 +21,8 @@ public class TweetController {
     private TweetService tweetService;
 
     @PostMapping("/generate")
-    public ResponseEntity<List<Tweets>> generateTweets() {
-        List<Tweets> generatedTweets = tweetService.generateTweetsForUnprocessedNews();
+    public ResponseEntity<List<Map<String, Object>>> generateTweets() {
+        List<Map<String, Object>> generatedTweets = tweetService.generateTweetsForUnprocessedNews();
         return ResponseEntity.status(HttpStatus.CREATED).body(generatedTweets);
     }
 }

@@ -7,9 +7,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 @Entity
-@Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "tweets")
@@ -21,7 +21,7 @@ public class Tweets {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "bot_id", nullable = false)
-    private Bot botId;
+    private Bot bot;
 
     @OneToOne
     @JoinColumn(name = "news_id", nullable = false)
@@ -42,11 +42,75 @@ public class Tweets {
     @Column(name = "created_at")
     private Timestamp createdAt;
 
-    public Tweets(News news, String content, TweetStatus status) {
+    public Tweets(Bot bot, News news, String content, TweetStatus status) {
+        this.bot = bot;
         this.news = news;
         this.content = content;
         this.status = status;
+        this.createdAt = Timestamp.valueOf(LocalDateTime.now());
     }
 
+    public Long getId() {
+        return id;
+    }
 
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Bot getBot() {
+        return bot;
+    }
+
+    public void setBot(Bot bot) {
+        this.bot = bot;
+    }
+
+    public News getNews() {
+        return news;
+    }
+
+    public void setNews(News news) {
+        this.news = news;
+    }
+
+    public String getContent() {
+        return content;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
+    }
+
+    public TweetStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(TweetStatus status) {
+        this.status = status;
+    }
+
+    public int getRetryCount() {
+        return retryCount;
+    }
+
+    public void setRetryCount(int retryCount) {
+        this.retryCount = retryCount;
+    }
+
+    public Timestamp getScheduledAt() {
+        return scheduledAt;
+    }
+
+    public void setScheduledAt(Timestamp scheduledAt) {
+        this.scheduledAt = scheduledAt;
+    }
+
+    public Timestamp getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Timestamp createdAt) {
+        this.createdAt = createdAt;
+    }
 }
