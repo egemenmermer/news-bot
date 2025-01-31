@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 @Service
 public class TweetServiceImpl implements TweetService {
 
-    private GeminiServiceImpl geminiService;
+    private GeminiService geminiService;
 
     @Autowired
     private NewsRepository newsRepository;
