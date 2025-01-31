@@ -12,7 +12,7 @@ import java.sql.Timestamp;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "bot_config")
+@Table(name = "bot_configurations")
 public class BotConfig {
 
     @Id
