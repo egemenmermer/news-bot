@@ -77,6 +77,7 @@ public class News {
         return publishedAt;
     }
 
+
     public void setPublishedAt(Timestamp publishedAt) {
         this.publishedAt = publishedAt;
     }
