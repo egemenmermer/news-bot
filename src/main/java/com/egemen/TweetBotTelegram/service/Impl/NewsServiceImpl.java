@@ -21,7 +21,8 @@ import io.github.resilience4j.timelimiter.TimeLimiter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.web.client.ResourceNotFoundException;
+import com.egemen.TweetBotTelegram.exception.ResourceNotFoundException;
+import com.egemen.TweetBotTelegram.dto.NewsArticleDTO;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -33,7 +34,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class NewsServiceImpl implements NewsService {
 
-    private static final String MEDIASTACK_API_KEY = "8c2e88b68bfd74df64a1b19241de9c22";
+    // Uses MediaStack API to fetch news
+    private static final String MEDIASTACK_API_KEY = "your-key";
     private static final String MEDIASTACK_API_URL = "http://api.mediastack.com/v1/news";
     private final NewsRepository newsRepository;
     private final BotRepository botRepository;
@@ -55,48 +57,60 @@ public class NewsServiceImpl implements NewsService {
     }
 
     @Override
-    @Cacheable(value = "news", key = "#botId")
+    @Cacheable(value = "news", key = "#botId") // Caches news results by botId to avoid redundant API calls
     public List<News> fetchAndSaveNews(Long botId) {
+        // Start timing the operation for metrics
         Timer.Sample sample = Timer.start(meterRegistry);
         
         try {
+            // Circuit breaker pattern to handle API failures gracefully
             return CircuitBreaker.decorateSupplier(circuitBreaker, () -> {
+                // 1. Find the bot configuration
                 Bot bot = botRepository.findById(botId)
                         .orElseThrow(() -> new ResourceNotFoundException("Bot not found with id: " + botId));
 
+                // 2. Build and call the MediaStack API URL
                 String url = buildMediaStackUrl();
                 log.info("Fetching news from: {}", url);
 
+                
+                // 3. Make API call to get news
                 ResponseEntity<NewsResponseDTO> response = restTemplate.getForEntity(url, NewsResponseDTO.class);
                 
+                // 4. Handle empty response
                 if (response.getBody() == null || response.getBody().getArticles() == null) {
                     log.warn("No news articles found in API response.");
-                    return Collections.emptyList();
+                    return Collections.<News>emptyList();
                 }
 
+                // 5. Process news articles and save to database
                 List<News> articles = processNewsArticles(response.getBody().getArticles(), bot);
                 log.info("Saving {} articles to the database.", articles.size());
                 
-                return newsRepository.saveAll(articles);
+                return (List<News>) newsRepository.saveAll(articles);
             }).get();
         } finally {
+            // Record metrics about the operation
             sample.stop(Timer.builder("news.fetch.time")
                     .tag("botId", String.valueOf(botId))
                     .register(meterRegistry));
         }
     }
 
+    // Helper method to build the MediaStack API URL
     private String buildMediaStackUrl() {
         return MEDIASTACK_API_URL + "?access_key=" + MEDIASTACK_API_KEY +
                 "&categories=general&languages=en&limit=5";
     }
 
+    // Process the raw news articles into our News entities
     private List<News> processNewsArticles(List<NewsArticleDTO> articles, Bot bot) {
         return articles.stream()
                 .map(article -> createNewsFromArticle(article, bot))
                 .collect(Collectors.toList());
     }
 
+    // Convert a single news article DTO to our News entity
     private News createNewsFromArticle(NewsArticleDTO article, Bot bot) {
         Timestamp publishedAt = new Timestamp(System.currentTimeMillis());
         if (article.getPublishedAt() != null) {

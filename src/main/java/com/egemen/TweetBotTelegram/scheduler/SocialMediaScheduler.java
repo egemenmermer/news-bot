@@ -12,18 +12,17 @@ import java.util.Map;
 @Component
 @Slf4j
 public class SocialMediaScheduler {
+    // Core services for handling news and tweets
     private final NewsService newsService;
     private final TweetService tweetService;
     private final BotRepository botRepository;
 
-    public SocialMediaScheduler(NewsService newsService, TweetService tweetService, BotRepository botRepository) {
-        this.newsService = newsService;
-        this.tweetService = tweetService;
-        this.botRepository = botRepository;
-    }
-
-    @Scheduled(fixedRateString = "${app.scheduler.fetch-news-rate:300000}")
+    // Main scheduler that runs two primary tasks:
+    
+    @Scheduled(fixedRateString = "${app.scheduler.fetch-news-rate:300000}") // Runs every 5 minutes
     public void scheduleFetchNews() {
+        // 1. Fetches news for each configured bot
+        // 2. Saves new articles to database
         log.info("Starting scheduled news fetch");
         try {
             botRepository.findAll().forEach(bot -> {
@@ -38,8 +37,11 @@ public class SocialMediaScheduler {
         }
     }
 
-    @Scheduled(fixedRateString = "${app.scheduler.post-rate:600000}")
+    @Scheduled(fixedRateString = "${app.scheduler.post-rate:600000}") // Runs every 10 minutes
     public void schedulePostTweets() {
+        // 1. Checks for failed posts and retries them
+        // 2. Generates new tweets from unprocessed news
+        // 3. Schedules them for posting
         log.info("Starting scheduled tweet posting");
         try {
             tweetService.retryFailedPosts();

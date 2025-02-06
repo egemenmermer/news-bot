@@ -35,6 +35,10 @@ public class TweetServiceImpl implements TweetService {
 
     @Override
     public List<Map<String, Object>> generateTweetsForUnprocessedNews() {
+        // 1. Gets unprocessed news articles
+        // 2. Uses Gemini AI to summarize news
+        // 3. Generates engaging tweets
+        // 4. Saves tweets to database
         List<News> unprocessedNews = newsRepository.findByProcessedFalse();
 
         List<Tweets> tweets = unprocessedNews.stream()
@@ -73,6 +77,8 @@ public class TweetServiceImpl implements TweetService {
 
     @Override
     public void retryFailedPosts() {
+        // Handles failed tweet posts with retry mechanism
+        // Maximum 3 retry attempts
         List<Tweets> failedTweets = tweetRepository.findByStatus(TweetStatus.FAILED);
         failedTweets.stream()
             .filter(tweet -> tweet.getRetryCount() < 3)

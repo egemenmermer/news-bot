@@ -3,6 +3,7 @@ package com.egemen.TweetBotTelegram.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
+import java.sql.Timestamp;
 
 @Data
 @Entity
@@ -12,14 +13,18 @@ public class News {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @ManyToOne
+    @JoinColumn(name = "bot_id", insertable = false, updatable = false)
+    private Bot bot;
+
     @Column(nullable = false)
     private String title;
 
-    @Column(columnDefinition = "TEXT")
-    private String content;
+    @Column(name = "description", columnDefinition = "TEXT")
+    private String description;
 
     @Column(name = "published_at")
-    private LocalDateTime publishedAt;
+    private Timestamp publishedAt;
 
     @Column(name = "processed")
     private boolean processed = false;
@@ -42,5 +47,12 @@ public class News {
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
+    }
+
+    public News(Bot bot, String title, String description, Timestamp publishedAt) {
+        this.bot = bot;
+        this.title = title;
+        this.description = description;
+        this.publishedAt = publishedAt;
     }
 }
