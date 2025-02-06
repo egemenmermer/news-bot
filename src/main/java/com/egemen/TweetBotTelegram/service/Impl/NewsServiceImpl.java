@@ -6,7 +6,8 @@ import com.egemen.TweetBotTelegram.entity.News;
 import com.egemen.TweetBotTelegram.repository.BotRepository;
 import com.egemen.TweetBotTelegram.repository.NewsRepository;
 import com.egemen.TweetBotTelegram.service.NewsService;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -25,9 +26,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@Slf4j
 public class NewsServiceImpl implements NewsService {
-
+    private static final Logger log = LoggerFactory.getLogger(NewsServiceImpl.class);
+    
     // Uses MediaStack API to fetch news
     @Value("${mediastack.api.key}")
     private String MEDIASTACK_API_KEY;
@@ -35,19 +36,18 @@ public class NewsServiceImpl implements NewsService {
     private final NewsRepository newsRepository;
     private final BotRepository botRepository;
     private final RestTemplate restTemplate;
-    private final CircuitBreaker circuitBreaker;
+    private final CircuitBreakerRegistry circuitBreakerRegistry;
     private final MeterRegistry meterRegistry;
 
-    public NewsServiceImpl(
-            NewsRepository newsRepository,
-            BotRepository botRepository,
-            RestTemplate restTemplate,
-            CircuitBreakerRegistry circuitBreakerRegistry,
-            MeterRegistry meterRegistry) {
+    public NewsServiceImpl(NewsRepository newsRepository,
+                         BotRepository botRepository,
+                         RestTemplate restTemplate,
+                         CircuitBreakerRegistry circuitBreakerRegistry,
+                         MeterRegistry meterRegistry) {
         this.newsRepository = newsRepository;
         this.botRepository = botRepository;
         this.restTemplate = restTemplate;
-        this.circuitBreaker = circuitBreakerRegistry.circuitBreaker("newsApi");
+        this.circuitBreakerRegistry = circuitBreakerRegistry;
         this.meterRegistry = meterRegistry;
     }
 
@@ -59,7 +59,7 @@ public class NewsServiceImpl implements NewsService {
         
         try {
             // Circuit breaker pattern to handle API failures gracefully
-            return CircuitBreaker.decorateSupplier(circuitBreaker, () -> {
+            return CircuitBreaker.decorateSupplier(circuitBreakerRegistry.circuitBreaker("newsApi"), () -> {
                 // 1. Find the bot configuration
                 Bot bot = botRepository.findById(botId)
                         .orElseThrow(() -> new ResourceNotFoundException("Bot not found with id: " + botId));

@@ -1,11 +1,9 @@
 package com.egemen.TweetBotTelegram.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
 import java.time.LocalDateTime;
 import java.sql.Timestamp;
 
-@Data
 @Entity
 @Table(name = "news")
 public class News {
@@ -23,6 +21,9 @@ public class News {
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
+    @Column(name = "content")
+    private String content;
+
     @Column(name = "published_at")
     private Timestamp publishedAt;
 
@@ -38,6 +39,66 @@ public class News {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    // Getters and Setters
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Bot getBot() {
+        return bot;
+    }
+
+    public void setBot(Bot bot) {
+        this.bot = bot;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getContent() {
+        return content;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
+    }
+
+    public boolean isProcessed() {
+        return processed;
+    }
+
+    public void setProcessed(boolean processed) {
+        this.processed = processed;
+    }
+
+    // Constructor
+    public News(Bot bot, String title, String description, Timestamp publishedAt) {
+        this.bot = bot;
+        this.title = title;
+        this.description = description;
+        this.publishedAt = publishedAt;
+    }
+
+    public News() {
+    }
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
@@ -47,12 +108,5 @@ public class News {
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
-    }
-
-    public News(Bot bot, String title, String description, Timestamp publishedAt) {
-        this.bot = bot;
-        this.title = title;
-        this.description = description;
-        this.publishedAt = publishedAt;
     }
 }

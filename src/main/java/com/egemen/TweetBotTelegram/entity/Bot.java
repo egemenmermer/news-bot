@@ -1,19 +1,11 @@
 package com.egemen.TweetBotTelegram.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
-
 import java.sql.Timestamp;
 
 @Entity
-@Data
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
 @Table(name = "bots")
 public class Bot {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -36,6 +28,61 @@ public class Bot {
     @Column(name = "last_run")
     private Timestamp lastRun;
 
+    // Getters and Setters
+    public Long getId() {
+        return id;
+    }
 
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getApiKey() {
+        return apiKey;
+    }
+
+    public void setApiKey(String apiKey) {
+        this.apiKey = apiKey;
+    }
+
+    public String getApiSecret() {
+        return apiSecret;
+    }
+
+    public void setApiSecret(String apiSecret) {
+        this.apiSecret = apiSecret;
+    }
+
+    public Timestamp getFetchTime() {
+        return fetchTime;
+    }
+
+    public void setFetchTime(Timestamp fetchTime) {
+        this.fetchTime = fetchTime;
+    }
+
+    public Timestamp getPostTime() {
+        return postTime;
+    }
+
+    public void setPostTime(Timestamp postTime) {
+        this.postTime = postTime;
+    }
+
+    public Timestamp getLastRun() {
+        return lastRun;
+    }
+
+    public void setLastRun(Timestamp lastRun) {
+        this.lastRun = lastRun;
+    }
 }
 

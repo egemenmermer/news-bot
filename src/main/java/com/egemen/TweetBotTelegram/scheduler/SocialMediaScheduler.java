@@ -5,26 +5,27 @@ import com.egemen.TweetBotTelegram.service.TweetService;
 import com.egemen.TweetBotTelegram.repository.BotRepository;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import lombok.extern.slf4j.Slf4j;
-import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.Map;
 
 @Component
-@Slf4j
-@RequiredArgsConstructor
 public class SocialMediaScheduler {
-    // Core services for handling news and tweets
+    private static final Logger log = LoggerFactory.getLogger(SocialMediaScheduler.class);
+    
     private final NewsService newsService;
     private final TweetService tweetService;
     private final BotRepository botRepository;
 
-    // Main scheduler that runs two primary tasks:
-    
-    @Scheduled(fixedRateString = "${app.scheduler.fetch-news-rate:300000}") // Runs every 5 minutes
+    public SocialMediaScheduler(NewsService newsService, TweetService tweetService, BotRepository botRepository) {
+        this.newsService = newsService;
+        this.tweetService = tweetService;
+        this.botRepository = botRepository;
+    }
+
+    @Scheduled(fixedRateString = "${app.scheduler.fetch-news-rate:300000}")
     public void scheduleFetchNews() {
-        // 1. Fetches news for each configured bot
-        // 2. Saves new articles to database
         log.info("Starting scheduled news fetch");
         try {
             botRepository.findAll().forEach(bot -> {
@@ -39,11 +40,8 @@ public class SocialMediaScheduler {
         }
     }
 
-    @Scheduled(fixedRateString = "${app.scheduler.post-rate:600000}") // Runs every 10 minutes
+    @Scheduled(fixedRateString = "${app.scheduler.post-rate:600000}")
     public void schedulePostTweets() {
-        // 1. Checks for failed posts and retries them
-        // 2. Generates new tweets from unprocessed news
-        // 3. Schedules them for posting
         log.info("Starting scheduled tweet posting");
         try {
             tweetService.retryFailedPosts();

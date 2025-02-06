@@ -1,11 +1,17 @@
 package com.egemen.TweetBotTelegram.dto;
 
 import java.util.List;
-import lombok.Data;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-@Data
 public class NewsResponseDTO {
     @JsonProperty("data")
     private List<NewsArticleDTO> articles;
+
+    public List<NewsArticleDTO> getArticles() {
+        return articles;
+    }
+
+    public void setArticles(List<NewsArticleDTO> articles) {
+        this.articles = articles;
+    }
 }

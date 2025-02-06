@@ -7,69 +7,72 @@ import com.egemen.TweetBotTelegram.repository.NewsRepository;
 import com.egemen.TweetBotTelegram.repository.TweetsRepository;
 import com.egemen.TweetBotTelegram.service.GeminiService;
 import com.egemen.TweetBotTelegram.service.TweetService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import lombok.extern.slf4j.Slf4j;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.stream.Collectors;
 
 @Service
-@Slf4j
 @Transactional
 public class TweetServiceImpl implements TweetService {
+    private static final Logger log = LoggerFactory.getLogger(TweetServiceImpl.class);
 
-    @Autowired
-    private GeminiService geminiService;
+    private final GeminiService geminiService;
+    private final NewsRepository newsRepository;
+    private final TweetsRepository tweetRepository;
 
-    @Autowired
-    private NewsRepository newsRepository;
-
-    @Autowired
-    private TweetsRepository tweetRepository;
+    public TweetServiceImpl(GeminiService geminiService, NewsRepository newsRepository, TweetsRepository tweetRepository) {
+        this.geminiService = geminiService;
+        this.newsRepository = newsRepository;
+        this.tweetRepository = tweetRepository;
+    }
 
     @Override
     public List<Map<String, Object>> generateTweetsForUnprocessedNews() {
-        // 1. Gets unprocessed news articles
-        // 2. Uses Gemini AI to summarize news
-        // 3. Generates engaging tweets
-        // 4. Saves tweets to database
         List<News> unprocessedNews = newsRepository.findByProcessedFalse();
-
-        List<Tweets> tweets = unprocessedNews.stream()
+        return unprocessedNews.stream()
                 .map(news -> {
-                    String summary = geminiService.summarizeNews(news.getTitle(), news.getContent());
-                    String tweetContent = geminiService.generateTweet(summary);
-
-                    news.setProcessed(true);
-                    newsRepository.save(news);
-
-                    return new Tweets(news.getBot(), news, tweetContent, TweetStatus.SCHEDULED);
+                    Map<String, Object> result = new HashMap<>();
+                    try {
+                        String summary = geminiService.summarizeNews(news.getTitle(), news.getDescription());
+                        String tweetContent = geminiService.generateTweet(summary);
+                        
+                        Tweets tweet = new Tweets(
+                            news.getBot(),
+                            news,
+                            tweetContent,
+                            TweetStatus.DRAFT
+                        );
+                        
+                        tweet.setCreatedAt(Timestamp.valueOf(LocalDateTime.now()));
+                        tweetRepository.save(tweet);
+                        news.setProcessed(true);
+                        newsRepository.save(news);
+                        
+                        result.put("success", true);
+                        result.put("tweet", tweet);
+                        return result;
+                    } catch (Exception e) {
+                        log.error("Error generating tweet for news {}: {}", news.getId(), e.getMessage());
+                        result.put("success", false);
+                        result.put("error", e.getMessage());
+                        return result;
+                    }
                 })
-                .collect(Collectors.toList());
-
-        List<Tweets> savedTweets = tweetRepository.saveAll(tweets);
-
-        return savedTweets.stream()
-                .map(tweet -> Map.<String, Object>of(
-                        "id", tweet.getId(),
-                        "news_id", tweet.getNews().getId(),
-                        "bot_id", tweet.getBot().getId(),
-                        "content", tweet.getContent(),
-                        "status", tweet.getStatus().toString()
-                ))
                 .collect(Collectors.toList());
     }
 
     @Override
     public void schedulePost(Long tweetId, LocalDateTime scheduledTime) {
         Tweets tweet = tweetRepository.findById(tweetId)
-            .orElseThrow(() -> new CustomException("Tweet not found", HttpStatus.NOT_FOUND, "TWEET_NOT_FOUND"));
+                .orElseThrow(() -> new RuntimeException("Tweet not found"));
         tweet.setScheduledAt(Timestamp.valueOf(scheduledTime));
         tweet.setStatus(TweetStatus.SCHEDULED);
         tweetRepository.save(tweet);
@@ -77,8 +80,6 @@ public class TweetServiceImpl implements TweetService {
 
     @Override
     public void retryFailedPosts() {
-        // Handles failed tweet posts with retry mechanism
-        // Maximum 3 retry attempts
         List<Tweets> failedTweets = tweetRepository.findByStatus(TweetStatus.FAILED);
         failedTweets.stream()
             .filter(tweet -> tweet.getRetryCount() < 3)

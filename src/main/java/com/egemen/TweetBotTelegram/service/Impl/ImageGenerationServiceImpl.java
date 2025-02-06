@@ -5,6 +5,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -13,9 +16,9 @@ import java.io.File;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpEntity;
 
-@Slf4j
 @Service
 public class ImageGenerationServiceImpl implements ImageGenerationService {
+    private static final Logger log = LoggerFactory.getLogger(ImageGenerationServiceImpl.class);
     // Uses Hugging Face API to:
     // 1. Generate news-related images
     // 2. Add text overlays
@@ -27,7 +30,7 @@ public class ImageGenerationServiceImpl implements ImageGenerationService {
 
     private final RestTemplate restTemplate;
 
-    public ImageGenerationServiceImpl(RestTemplate restTemplate) {
+    public ImageGenerationServiceImpl(@Qualifier("imageRestTemplate") RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
 

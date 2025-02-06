@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.context.annotation.Primary;
 
 @SpringBootApplication
 @EnableScheduling
@@ -28,7 +29,8 @@ public class TweetBotTelegramApplication {
 		return executor;
 	}
 
-	@Bean
+	@Bean("mainRestTemplate")
+	@Primary
 	public RestTemplate restTemplate() {
 		return new RestTemplate();
 	}
