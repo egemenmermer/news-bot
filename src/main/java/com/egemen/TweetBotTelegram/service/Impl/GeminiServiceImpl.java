@@ -12,12 +12,16 @@ import java.util.*;
 
 @Service
 public class GeminiServiceImpl implements GeminiService {
-
-    @Value("${GEMINI_API_KEY}")
+    // Uses Google's Gemini AI for:
+    // 1. Summarizing news articles
+    // 2. Generating engaging tweets
+    
+    @Value("${gemini.api.key}")
     private String geminiApiKey;
 
     @Override
     public String summarizeNews(String newsTitle, String newsContent) {
+        // Creates concise summaries of news articles
         String GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + geminiApiKey;
 
         HttpHeaders headers = new HttpHeaders();
@@ -47,6 +51,7 @@ public class GeminiServiceImpl implements GeminiService {
 
     @Override
     public String generateTweet(String newsSummary) {
+        // Generates social media-friendly tweets
         String GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + geminiApiKey;
 
         HttpHeaders headers = new HttpHeaders();

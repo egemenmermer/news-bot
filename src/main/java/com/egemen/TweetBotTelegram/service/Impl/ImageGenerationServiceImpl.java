@@ -16,7 +16,10 @@ import org.springframework.http.HttpEntity;
 @Slf4j
 @Service
 public class ImageGenerationServiceImpl implements ImageGenerationService {
-
+    // Uses Hugging Face API to:
+    // 1. Generate news-related images
+    // 2. Add text overlays
+    // 3. Process and save images
     private static final String HUGGING_FACE_API_URL = "https://api-inference.huggingface.co/models/CompVis/stable-diffusion-v1-4";
     
     @Value("${huggingface.api.key}")

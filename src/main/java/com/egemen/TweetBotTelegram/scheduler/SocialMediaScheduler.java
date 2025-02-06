@@ -6,11 +6,13 @@ import com.egemen.TweetBotTelegram.repository.BotRepository;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import lombok.extern.slf4j.Slf4j;
+import lombok.RequiredArgsConstructor;
 import java.util.List;
 import java.util.Map;
 
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class SocialMediaScheduler {
     // Core services for handling news and tweets
     private final NewsService newsService;

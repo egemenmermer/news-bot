@@ -6,26 +6,20 @@ import com.egemen.TweetBotTelegram.entity.News;
 import com.egemen.TweetBotTelegram.repository.BotRepository;
 import com.egemen.TweetBotTelegram.repository.NewsRepository;
 import com.egemen.TweetBotTelegram.service.NewsService;
-import lombok.extern.log4j.Log4j;
-import lombok.extern.log4j.Log4j2;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
-import io.github.resilience4j.timelimiter.TimeLimiter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import org.springframework.cache.annotation.Cacheable;
 import com.egemen.TweetBotTelegram.exception.ResourceNotFoundException;
 import com.egemen.TweetBotTelegram.dto.NewsArticleDTO;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -35,7 +29,8 @@ import java.util.stream.Collectors;
 public class NewsServiceImpl implements NewsService {
 
     // Uses MediaStack API to fetch news
-    private static final String MEDIASTACK_API_KEY = "your-key";
+    @Value("${mediastack.api.key}")
+    private String MEDIASTACK_API_KEY;
     private static final String MEDIASTACK_API_URL = "http://api.mediastack.com/v1/news";
     private final NewsRepository newsRepository;
     private final BotRepository botRepository;

@@ -7,6 +7,8 @@ import java.sql.Timestamp;
 
 @Entity
 @Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "bots")
@@ -14,7 +16,7 @@ public class Bot {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long Id;
+    private Long id;
 
     @Column(name = "name")
     private String name;

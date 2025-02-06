@@ -1,5 +1,6 @@
 package com.egemen.TweetBotTelegram;
 
+import com.egemen.TweetBotTelegram.config.EnvConfig;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
