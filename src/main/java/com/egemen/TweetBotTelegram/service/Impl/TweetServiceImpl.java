@@ -8,13 +8,20 @@ import com.egemen.TweetBotTelegram.repository.TweetsRepository;
 import com.egemen.TweetBotTelegram.service.GeminiService;
 import com.egemen.TweetBotTelegram.service.TweetService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import lombok.extern.slf4j.Slf4j;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
+@Transactional
 public class TweetServiceImpl implements TweetService {
 
     @Autowired
@@ -53,5 +60,31 @@ public class TweetServiceImpl implements TweetService {
                         "status", tweet.getStatus().toString()
                 ))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public void schedulePost(Long tweetId, LocalDateTime scheduledTime) {
+        Tweets tweet = tweetRepository.findById(tweetId)
+            .orElseThrow(() -> new CustomException("Tweet not found", HttpStatus.NOT_FOUND, "TWEET_NOT_FOUND"));
+        tweet.setScheduledAt(Timestamp.valueOf(scheduledTime));
+        tweet.setStatus(TweetStatus.SCHEDULED);
+        tweetRepository.save(tweet);
+    }
+
+    @Override
+    public void retryFailedPosts() {
+        List<Tweets> failedTweets = tweetRepository.findByStatus(TweetStatus.FAILED);
+        failedTweets.stream()
+            .filter(tweet -> tweet.getRetryCount() < 3)
+            .forEach(tweet -> {
+                tweet.setRetryCount(tweet.getRetryCount() + 1);
+                tweet.setStatus(TweetStatus.SCHEDULED);
+                tweetRepository.save(tweet);
+            });
+    }
+
+    @Override
+    public void updatePostStatus(Long tweetId, TweetStatus status) {
+        tweetRepository.updateStatus(tweetId, status);
     }
 }
