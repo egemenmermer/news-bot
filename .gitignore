@@ -5,7 +5,7 @@ target/
 !**/src/test/**/target/
 
 # Environment files
-.env
+src/main/resources/.env
 .env.local
 .env.*
 

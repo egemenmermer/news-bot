@@ -8,5 +8,7 @@ import java.util.List;
 
 @Repository
 public interface NewsRepository extends JpaRepository<News, Long> {
-    List<News> findByProcessedFalse();
+    boolean existsByTitleAndDescription(String title, String description);
+    List<News> findByProcessedFalseAndPostedFalse();
+    List<News> findByProcessedTrueAndPostedFalse();
 }

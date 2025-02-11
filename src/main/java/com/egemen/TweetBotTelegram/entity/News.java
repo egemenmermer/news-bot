@@ -18,8 +18,14 @@ public class News {
     @Column(nullable = false)
     private String title;
 
-    @Column(name = "description", columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT")
     private String description;
+
+    @Column(name = "image_url")
+    private String imageUrl;
+
+    @Column(name = "generated_image_path")
+    private String generatedImagePath;
 
     @Column(name = "content")
     private String content;
@@ -29,6 +35,9 @@ public class News {
 
     @Column(name = "processed")
     private boolean processed = false;
+
+    @Column(name = "posted")
+    private boolean posted = false;
 
     @Column(name = "bot_id")
     private Long botId;
@@ -72,6 +81,22 @@ public class News {
         this.description = description;
     }
 
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    public String getGeneratedImagePath() {
+        return generatedImagePath;
+    }
+
+    public void setGeneratedImagePath(String generatedImagePath) {
+        this.generatedImagePath = generatedImagePath;
+    }
+
     public String getContent() {
         return content;
     }
@@ -86,6 +111,14 @@ public class News {
 
     public void setProcessed(boolean processed) {
         this.processed = processed;
+    }
+
+    public boolean isPosted() {
+        return posted;
+    }
+
+    public void setPosted(boolean posted) {
+        this.posted = posted;
     }
 
     // Constructor
