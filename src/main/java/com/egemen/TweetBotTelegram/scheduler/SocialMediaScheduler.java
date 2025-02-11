@@ -1,54 +1,58 @@
 package com.egemen.TweetBotTelegram.scheduler;
 
 import com.egemen.TweetBotTelegram.service.NewsService;
-import com.egemen.TweetBotTelegram.service.TweetService;
-import com.egemen.TweetBotTelegram.repository.BotRepository;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
+import com.egemen.TweetBotTelegram.service.ImageService;
+import com.egemen.TweetBotTelegram.service.InstagramService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.util.List;
-import java.util.Map;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 
 @Component
 public class SocialMediaScheduler {
     private static final Logger log = LoggerFactory.getLogger(SocialMediaScheduler.class);
-    
-    private final NewsService newsService;
-    private final TweetService tweetService;
-    private final BotRepository botRepository;
 
-    public SocialMediaScheduler(NewsService newsService, TweetService tweetService, BotRepository botRepository) {
+    private final NewsService newsService;
+    private final ImageService imageService;
+    private final InstagramService instagramService;
+
+    public SocialMediaScheduler(
+            NewsService newsService,
+            ImageService imageService,
+            InstagramService instagramService) {
         this.newsService = newsService;
-        this.tweetService = tweetService;
-        this.botRepository = botRepository;
+        this.imageService = imageService;
+        this.instagramService = instagramService;
     }
 
     @Scheduled(fixedRateString = "${app.scheduler.fetch-news-rate:300000}")
     public void scheduleFetchNews() {
         log.info("Starting scheduled news fetch");
         try {
-            botRepository.findAll().forEach(bot -> {
-                try {
-                    newsService.fetchAndSaveNews(bot.getId());
-                } catch (Exception e) {
-                    log.error("Error fetching news for bot {}: {}", bot.getId(), e.getMessage());
-                }
-            });
+            newsService.fetchLatestNews();
         } catch (Exception e) {
             log.error("Error in scheduleFetchNews: {}", e.getMessage());
         }
     }
 
     @Scheduled(fixedRateString = "${app.scheduler.post-rate:600000}")
-    public void schedulePostTweets() {
-        log.info("Starting scheduled tweet posting");
+    public void scheduleInstagramPosts() {
+        log.info("Starting scheduled Instagram posting");
         try {
-            tweetService.retryFailedPosts();
-            List<Map<String, Object>> tweets = tweetService.generateTweetsForUnprocessedNews();
-            log.info("Generated {} new tweets", tweets.size());
+            instagramService.handleFailedPosts();
+            // Process new posts
+            newsService.getUnprocessedNews().forEach(news -> {
+                try {
+                    String imageUrl = imageService.findImageForNews(news);
+                    if (imageUrl != null) {
+                        instagramService.createPost(news, imageUrl);
+                    }
+                } catch (Exception e) {
+                    log.error("Error processing news {}: {}", news.getId(), e.getMessage());
+                }
+            });
         } catch (Exception e) {
-            log.error("Error in schedulePostTweets: {}", e.getMessage());
+            log.error("Error in scheduleInstagramPosts: {}", e.getMessage());
         }
     }
 }
