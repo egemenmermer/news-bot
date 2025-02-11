@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/news")
+@RequestMapping("/api/news")
 public class NewsController {
 
     private final NewsService newsService;
@@ -17,9 +17,29 @@ public class NewsController {
         this.newsService = newsService;
     }
 
+    @GetMapping
+    public ResponseEntity<List<News>> getAllNews() {
+        return ResponseEntity.ok(newsService.getAllNews());
+    }
+
+    @GetMapping("/unprocessed")
+    public ResponseEntity<List<News>> getUnprocessedNews() {
+        return ResponseEntity.ok(newsService.getUnprocessedNews());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<News> getNews(@PathVariable Long id) {
+        return ResponseEntity.ok(newsService.getNews(id));
+    }
+
     @PostMapping("/fetch")
-    public ResponseEntity<List<News>> fetchNews(@RequestParam Long botId) {
-        List<News> newsList = newsService.fetchAndSaveNews(botId);
-        return ResponseEntity.ok(newsList);
+    public ResponseEntity<List<News>> fetchLatestNews() {
+        return ResponseEntity.ok(newsService.fetchLatestNews());
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteNews(@PathVariable Long id) {
+        newsService.deleteNews(id);
+        return ResponseEntity.ok().build();
     }
 }
