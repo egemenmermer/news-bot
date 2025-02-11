@@ -1,33 +1,46 @@
 package com.egemen.TweetBotTelegram.config;
 
-import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.context.annotation.PropertySources;
-
+import org.springframework.core.env.Environment;
 import jakarta.annotation.PostConstruct;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Configuration
-@PropertySources({
-    @PropertySource(value = "file:.env", ignoreResourceNotFound = true)
-})
+@PropertySource(value = "file:.env", ignoreResourceNotFound = true)
 public class EnvConfig {
+    private static final Logger log = LoggerFactory.getLogger(EnvConfig.class);
+    
+    private final Environment env;
+
+    public EnvConfig(Environment env) {
+        this.env = env;
+    }
 
     @PostConstruct
-    public void loadEnvVariables() {
-        Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
+    public void logEnvVariables() {
+        log.info("✅ Environment Variables Loaded:");
+        
+        // Database
+        logVariable("DB_URL");
+        logVariable("DB_USERNAME");
+        logVariable("DB_PASSWORD");
+        
+        // AWS
+        logVariable("AWS_ACCESS_KEY");
+        logVariable("AWS_SECRET_KEY");
+        logVariable("AWS_REGION");
+        logVariable("AWS_S3_BUCKET");
+        
+        // APIs
+        logVariable("PEXELS_API_KEY");
+        logVariable("INSTAGRAM_ACCESS_TOKEN");
+        logVariable("MEDIASTACK_API_KEY");
+    }
 
-        System.setProperty("DB_URL", dotenv.get("DB_URL"));
-        System.setProperty("DB_USERNAME", dotenv.get("DB_USERNAME"));
-        System.setProperty("DB_PASSWORD", dotenv.get("DB_PASSWORD"));
-
-        System.setProperty("GEMINI_API_KEY", dotenv.get("GEMINI_API_KEY"));
-        System.setProperty("HUGGINGFACE_API_KEY", dotenv.get("HUGGINGFACE_API_KEY"));
-        System.setProperty("MEDIASTACK_API_KEY", dotenv.get("MEDIASTACK_API_KEY"));
-
-        // Verify environment variables are loaded
-        System.out.println("✅ Environment Variables Loaded:");
-        System.out.println("DB_URL: " + System.getenv("DB_URL"));
-        System.out.println("GEMINI_API_KEY: " + System.getenv("GEMINI_API_KEY"));
+    private void logVariable(String name) {
+        String value = env.getProperty(name);
+        log.info("{}: {}", name, value != null ? "✓" : "✗");
     }
 }
