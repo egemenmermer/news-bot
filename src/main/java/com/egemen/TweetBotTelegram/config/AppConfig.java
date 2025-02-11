@@ -11,6 +11,7 @@ public class AppConfig {
     private SocialMediaConfig socialMedia;
     private SecurityConfig security;
     private SchedulerConfig scheduler;
+    private InstagramConfig instagram;
 
     @Data
     public static class SocialMediaConfig {
@@ -41,5 +42,13 @@ public class AppConfig {
     public static class SchedulerConfig {
         private int fetchNewsRate;
         private int postRate;
+    }
+
+    @Data
+    public static class InstagramConfig {
+        private int imageSize = 1080;
+        private int maxRetries = 3;
+        private int postDelay = 60;
+        private String captionTemplate = "📰 {title}\n\n{description}\n\n#news #update";
     }
 }

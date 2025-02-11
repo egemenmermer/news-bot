@@ -4,6 +4,7 @@ import com.egemen.TweetBotTelegram.entity.InstagramPost;
 import com.egemen.TweetBotTelegram.entity.News;
 import com.egemen.TweetBotTelegram.enums.PostStatus;
 import com.egemen.TweetBotTelegram.repository.InstagramPostRepository;
+import com.egemen.TweetBotTelegram.service.InstagramApiService;
 import com.egemen.TweetBotTelegram.service.InstagramService;
 import com.egemen.TweetBotTelegram.service.NewsService;
 import org.slf4j.Logger;
@@ -23,10 +24,12 @@ public class InstagramServiceImpl implements InstagramService {
 
     private final InstagramPostRepository instagramPostRepository;
     private final NewsService newsService;
+    private final InstagramApiService instagramApiService;
 
-    public InstagramServiceImpl(InstagramPostRepository instagramPostRepository, NewsService newsService) {
+    public InstagramServiceImpl(InstagramPostRepository instagramPostRepository, NewsService newsService, InstagramApiService instagramApiService) {
         this.instagramPostRepository = instagramPostRepository;
         this.newsService = newsService;
+        this.instagramApiService = instagramApiService;
     }
 
     @Override
@@ -49,15 +52,31 @@ public class InstagramServiceImpl implements InstagramService {
     public InstagramPost publishPost(Long id) {
         InstagramPost post = getPost(id);
         try {
-            // TODO: Implement Instagram API integration
-            log.info("Publishing post to Instagram: {}", id);
+            // Upload media to Instagram
+            String containerId = instagramApiService.uploadMedia(post.getImageUrl());
+            
+            // Wait for processing
+            String status = instagramApiService.getMediaStatus(containerId);
+            while ("IN_PROGRESS".equals(status)) {
+                Thread.sleep(1000);
+                status = instagramApiService.getMediaStatus(containerId);
+            }
+            
+            if ("ERROR".equals(status)) {
+                throw new RuntimeException("Media processing failed");
+            }
+            
+            // Publish the post
+            String postId = instagramApiService.publishMedia(containerId, post.getCaption());
+            
+            post.setInstagramPostId(postId);
             post.setStatus(PostStatus.POSTED);
             post.setPostedAt(LocalDateTime.now());
             return instagramPostRepository.save(post);
         } catch (Exception e) {
             log.error("Error publishing post {}: {}", id, e.getMessage());
             post.setStatus(PostStatus.FAILED);
-            post.setRetryCount(post.getRetryCount() + 1);
+            post.incrementRetryCount();
             instagramPostRepository.save(post);
             throw new RuntimeException("Failed to publish post", e);
         }

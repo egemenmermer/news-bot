@@ -5,25 +5,37 @@ import java.io.InputStream;
 
 public interface ImageService {
     /**
-     * Searches for a relevant image using the news title and content
-     * @param news The news article to find an image for
-     * @return URL of the found image, or null if no suitable image found
+     * Finds or generates an appropriate image for the news article
+     * @param news The news article
+     * @return URL of the image
      */
     String findImageForNews(News news);
 
     /**
-     * Processes an image by adding text overlay and applying template
+     * Processes and optimizes image for Instagram
      * @param imageUrl URL of the original image
-     * @param newsTitle Title to be added to the image
-     * @return InputStream of the processed image
+     * @return Path to the processed image
      */
-    InputStream processImage(String imageUrl, String newsTitle);
+    String processImageForInstagram(String imageUrl);
 
     /**
-     * Saves the processed image to storage (S3)
-     * @param news The associated news article
-     * @param processedImage The processed image as InputStream
-     * @return URL of the saved image
+     * Validates if the image meets Instagram requirements
+     * @param imageUrl URL of the image
+     * @return true if valid, false otherwise
      */
-    String saveProcessedImage(News news, InputStream processedImage);
+    boolean isValidForInstagram(String imageUrl);
+
+    /**
+     * Searches for relevant images using Pexels API
+     * @param query Search query
+     * @return URL of the found image or null if none found
+     */
+    String searchPexelsImage(String query);
+
+    /**
+     * Downloads image from URL
+     * @param imageUrl URL of the image
+     * @return InputStream of the image
+     */
+    InputStream downloadImage(String imageUrl);
 }
