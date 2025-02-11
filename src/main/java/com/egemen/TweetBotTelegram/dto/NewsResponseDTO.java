@@ -2,16 +2,20 @@ package com.egemen.TweetBotTelegram.dto;
 
 import java.util.List;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@Data
 public class NewsResponseDTO {
-    @JsonProperty("data")
-    private List<NewsArticleDTO> articles;
+    private Pagination pagination;
+    private List<NewsArticleDTO> data;
 
-    public List<NewsArticleDTO> getArticles() {
-        return articles;
-    }
-
-    public void setArticles(List<NewsArticleDTO> articles) {
-        this.articles = articles;
+    @Data
+    public static class Pagination {
+        private int limit;
+        private int offset;
+        private int count;
+        private int total;
     }
 }

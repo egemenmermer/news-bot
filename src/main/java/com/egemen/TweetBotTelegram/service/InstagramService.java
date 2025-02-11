@@ -1,10 +1,13 @@
 package com.egemen.TweetBotTelegram.service;
 
 import com.egemen.TweetBotTelegram.entity.InstagramPost;
-import com.egemen.TweetBotTelegram.entity.News;
+import java.util.List;
 
 public interface InstagramService {
-    InstagramPost createPost(News news, String imageUrl);
-    boolean publishPost(InstagramPost post);
-    void handleFailedPosts();
+    List<InstagramPost> getAllPosts();
+    List<InstagramPost> getPendingPosts();
+    InstagramPost getPost(Long id);
+    InstagramPost publishPost(Long id);
+    void deletePost(Long id);
+    InstagramPost createPost(Long newsId, String imageUrl);
 }

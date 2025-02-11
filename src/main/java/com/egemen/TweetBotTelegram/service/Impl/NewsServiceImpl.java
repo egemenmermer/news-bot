@@ -11,21 +11,23 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import java.sql.Timestamp;
+import org.springframework.web.util.UriComponentsBuilder;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class NewsServiceImpl implements NewsService {
     private static final Logger log = LoggerFactory.getLogger(NewsServiceImpl.class);
 
     @Value("${mediastack.api.key}")
-    private String apiKey;
+    private String mediastackApiKey;
 
     private final NewsRepository newsRepository;
     private final RestTemplate restTemplate;
-    private final String NEWS_API_URL = "http://api.mediastack.com/v1/news";
+    private static final String NEWS_API_URL = "http://api.mediastack.com/v1/news";
 
     public NewsServiceImpl(NewsRepository newsRepository, RestTemplate restTemplate) {
         this.newsRepository = newsRepository;
@@ -33,29 +35,66 @@ public class NewsServiceImpl implements NewsService {
     }
 
     @Override
-    public List<News> fetchLatestNews() {
-        log.info("Fetching latest news");
-        List<News> savedNews = new ArrayList<>();
+    public List<News> getAllNews() {
+        return newsRepository.findAll();
+    }
 
+    @Override
+    public List<News> getUnprocessedNews() {
+        return newsRepository.findByProcessedFalseAndPostedFalseOrderByCreatedAtDesc();
+    }
+
+    @Override
+    public News getNews(Long id) {
+        return newsRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("News not found with id: " + id));
+    }
+
+    @Override
+    public List<News> fetchLatestNews() {
         try {
-            // Build URL with parameters
-            String url = String.format("%s?access_key=%s&languages=en&limit=10", NEWS_API_URL, apiKey);
+            log.info("Fetching latest news from MediaStack API");
             
+            String url = UriComponentsBuilder.fromHttpUrl(NEWS_API_URL)
+                    .queryParam("access_key", mediastackApiKey)
+                    .queryParam("languages", "en")
+                    .queryParam("limit", 100)
+                    .queryParam("sort", "published_desc")
+                    .build()
+                    .toUriString();
+
             ResponseEntity<NewsResponseDTO> response = restTemplate.getForEntity(url, NewsResponseDTO.class);
-            
-            if (response.getBody() != null && response.getBody().getArticles() != null) {
-                for (NewsArticleDTO article : response.getBody().getArticles()) {
-                    News news = convertToNews(article);
-                    if (!newsExists(news)) {
-                        savedNews.add(newsRepository.save(news));
+            List<News> savedNews = new ArrayList<>();
+
+            if (response.getBody() != null && response.getBody().getData() != null) {
+                for (NewsArticleDTO article : response.getBody().getData()) {
+                    try {
+                        News news = convertToNews(article);
+                        if (!newsExists(news)) {
+                            savedNews.add(newsRepository.save(news));
+                            log.info("Saved new article: {}", news.getTitle());
+                        }
+                    } catch (Exception e) {
+                        log.error("Error processing article: {}", e.getMessage());
                     }
                 }
             }
+
+            return savedNews;
         } catch (Exception e) {
             log.error("Error fetching news: {}", e.getMessage());
+            throw new RuntimeException("Failed to fetch news", e);
         }
+    }
 
-        return savedNews;
+    @Override
+    public void deleteNews(Long id) {
+        newsRepository.deleteById(id);
+    }
+
+    @Override
+    public News save(News news) {
+        return newsRepository.save(news);
     }
 
     @Override
@@ -83,11 +122,18 @@ public class NewsServiceImpl implements NewsService {
     }
 
     private News convertToNews(NewsArticleDTO article) {
+        if (article == null || article.getTitle() == null) {
+            throw new IllegalArgumentException("Invalid article data");
+        }
+
         News news = new News();
         news.setTitle(article.getTitle());
         news.setDescription(article.getDescription());
         news.setImageUrl(article.getImageUrl());
         news.setCreatedAt(LocalDateTime.now());
+        news.setProcessed(false);
+        news.setPosted(false);
+        
         return news;
     }
 }

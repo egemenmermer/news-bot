@@ -39,13 +39,11 @@ public class SocialMediaScheduler {
     public void scheduleInstagramPosts() {
         log.info("Starting scheduled Instagram posting");
         try {
-            instagramService.handleFailedPosts();
-            // Process new posts
             newsService.getUnprocessedNews().forEach(news -> {
                 try {
                     String imageUrl = imageService.findImageForNews(news);
                     if (imageUrl != null) {
-                        instagramService.createPost(news, imageUrl);
+                        instagramService.createPost(news.getId(), imageUrl);
                     }
                 } catch (Exception e) {
                     log.error("Error processing news {}: {}", news.getId(), e.getMessage());

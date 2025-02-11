@@ -1,12 +1,15 @@
 package com.egemen.TweetBotTelegram.dto;
 
+import lombok.Data;
+
 import java.time.ZonedDateTime;
 
+@Data
 public class NewsArticleDTO {
     private String title;
     private String description;
     private String url;
-    private String imageUrl;        // For news that come with images
+    private String imageUrl;
     private ZonedDateTime publishedAt;
 
     // Getters and Setters

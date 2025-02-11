@@ -10,4 +10,5 @@ import java.util.List;
 public interface InstagramPostRepository extends JpaRepository<InstagramPost, Long> {
     List<InstagramPost> findByStatus(PostStatus status);
     List<InstagramPost> findByStatusOrderByCreatedAtAsc(PostStatus status);
+    List<InstagramPost> findByNewsId(Long newsId);
 }
